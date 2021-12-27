@@ -1,0 +1,77 @@
+﻿@using ListerUI.Models
+@using ListerUI.Repositories
+
+@inject INodeRepository nodeRepository;
+
+@if(NodeForEditing != null )
+{
+    <EditForm Model="@NodeForEditing" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <InputText id="name" class="form-control" @bind-Value="NodeForEditing.Name" />
+        </div>
+        <div class="mb-3">
+            <label for="Description" class="form-label">Description</label>
+            <InputText id="Description" class="form-control" @bind-Value="NodeForEditing.Description" />
+        </div>
+        <div>
+            <button class="btn alert-primary ml-1" @onclick="CloseEditing">Close Editing</button>
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </div>
+    </EditForm>    
+}
+else if (CurrentNodeList.RootNode != null)
+{
+    <div class="pb-lg-2">
+        <button class="btn btn-primary p-3" @onclick="AddRootSubRecord">Add Top Level Record</button>
+    </div>
+
+    @foreach (var node in CurrentNodeList.GetSubNodes(CurrentNodeList.RootNode))
+    {
+        <Edit Node="@node" 
+                NodeList="@this.CurrentNodeList" 
+                OnNodeStateChanged="@PeerNodesAdded"
+                OnEditNode="@EditNode"/>
+    }
+}
+
+
+
+@code {
+
+    [Parameter]
+    public NodeList CurrentNodeList { get; set; }
+
+    public Node Node { get; set; }
+    public Node NodeForEditing { get; set; } = null;
+
+    protected override void OnInitialized()
+    {
+        if(CurrentNodeList != null)
+        {            
+            this.Node = this.CurrentNodeList.RootNode;
+        }       
+    }
+
+    public void AddRootSubRecord()
+    {
+        if (this.Node == null) return;
+        if (this.CurrentNodeList == null) return;
+
+        var newNode = this.CurrentNodeList.AddSubNode(this.Node);
+        //nodeRepository.SaveNode(newNode);
+        NodeForEditing = newNode;
+        //StateHasChanged();
+    }
+
+    public void HandleValidSubmit()
+    {
+        NodeForEditing = null;
+    }
+
+    public void PeerNodesAdded(bool statechange) => StateHasChanged();
+    public void EditNode(Node editNode) => NodeForEditing = editNode;
+    public void CloseEditing() => NodeForEditing = null;
+}

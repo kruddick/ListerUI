@@ -1,0 +1,145 @@
+﻿@using ListerUI.Enums
+@using ListerUI.Models
+@using ListerUI.Repositories
+
+@inject IListsRepository listRepository
+
+<div class="mt-4">
+    @if (AddNewList == true)
+    {
+        <div>
+            <div>
+                Enter list information.
+            </div>
+            <div>
+                <EditForm Model="@this.ListInfo" OnValidSubmit="@AddList">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <label>Name</label>
+                    <InputText id="name" @bind-Value="this.ListInfo.Name" />
+                    <label>Description</label>
+                    <InputText id="name" @bind-Value="this.ListInfo.Description" />
+                </EditForm>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-danger p-2" @onclick="CancelAddList">Cancel</button>
+                <button class="btn btn-primary p-2" @onclick="AddList">Save</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <h3>Create a new list or select an existing list</h3>
+        <div class="mb-4">
+            <button class="btn btn-primary" @onclick="CreateNewList">Create new list</button>
+        </div>
+        <div class="d-flex ">
+            @if (Lists != null && Lists.Count > 0)
+            {
+                <div class="mr-4 container-fluid">
+                    @foreach (var list in Lists)
+                    {
+                        string classes;
+                        if (list.Id == this.SelectedList)
+                        {
+                            classes = "container-fluid d-flex mb-4 shadow-sm bg-info text-white";
+                        }
+                        else
+                        {
+                            classes = "container-fluid d-flex mb-4 shadow-sm";
+                        }
+                        <div @onclick="@(() => SelectList(list))" class=@classes>
+
+                            <div class="col ml-2 mr-2 pl-2 pr-2">
+                                <div class="fw-bold">Name</div>
+                                <div>@list.Name</div>
+                            </div>
+                            <div class="col ml-2 mr-2 pl-2 pr-2">
+                                <div class="fw-bold">Description</div>
+                                <div>@list.Description</div>
+                            </div>
+                            <div class="col align-middle text-end pointer-event btn">
+                                Select <span class="oi oi-circle-check"> </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (this.ListInfo != null)
+                {
+                    <div class="ml-4 container-fluid col-3">
+                        <button @onclick="OpenList" class="btn btn-primary mb-2">Open this list</button>
+                        <div>
+                            <div class="fw-bold">Created By</div>
+                            <div>@this.ListInfo.CreatedBy</div>
+                        </div>
+                        <div>
+                            <div class="fw-bold mt-2">Created Date</div>
+                            <div>@this.ListInfo.CreatedDate</div>
+                        </div>
+
+                    </div>
+                }
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<string> UpdateSelectedList { get; set; }
+
+    [Parameter]
+    public string SelectedList { get; set; } = "";
+    
+    private List<ListInfo> Lists { get; set; } = new List<ListInfo>();
+    private ListInfo ListInfo { get; set; }     
+    private bool AddNewList { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Lists = listRepository.GetLists();
+    }
+
+    private void CreateNewList()
+    {
+        this.ListInfo = new ListInfo();
+        AddNewList = true;
+    }
+
+    private void CancelAddList() => AddNewList = false;
+
+    private void AddList()
+    {
+
+        this.ListInfo.Id = Guid.NewGuid().ToString();
+
+        this.ListInfo.CreatedBy = "Kent";
+
+        this.ListInfo.CreatedDate = DateOnly.FromDateTime(DateTime.Now);
+        listRepository.AddList(this.ListInfo);
+        Lists = listRepository.GetLists();
+        AddNewList = false;
+    }
+
+    private void SelectList(ListInfo listInfo)
+    {
+        this.SelectedList = listInfo.Id;
+        this.ListInfo = listInfo;
+
+    }
+
+    private async Task OpenList()
+    {
+        if (String.IsNullOrWhiteSpace(this.SelectedList)) return;
+
+        await this.UpdateSelectedList
+            .InvokeAsync(this.SelectedList);
+    }
+
+    public void RefreshUI()
+    {
+        StateHasChanged();
+    }
+}
+
+

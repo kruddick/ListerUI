@@ -1,0 +1,46 @@
+﻿@page "/"
+
+@using ListerUI.Enums
+
+<Selector 
+    SelectViewCallback="@UpdateSelectedMenuItem"
+    Selection="@SelectedMenuItem"/>
+
+@switch (SelectedMenuItem)
+{
+    case NavItems.Lists:
+    {
+        <NodeLists UpdateSelectedList="@UpdateSelectedList" SelectedList="@SelectedList"/>
+        break;
+    }
+    case NavItems.DisplayNodes:
+    case NavItems.EditNodes:
+    {
+        <DisplayOrEdit 
+            ListId="@SelectedList" 
+            SelectedMenuItem="@SelectedMenuItem"
+            UpdateNavItem="@UpdateSelectedMenuItem"/>
+        break;
+    }
+}
+
+
+@code {
+
+    [Parameter]
+    public NavItems SelectedMenuItem { get; set; } = NavItems.Lists;
+
+    public string SelectedList { get; set; } = "";
+
+    public void UpdateSelectedList(string ListId)
+    {
+        SelectedList = ListId;
+        SelectedMenuItem = NavItems.DisplayNodes;
+    }
+
+    public void UpdateSelectedMenuItem(NavItems navItem)
+    {
+        SelectedMenuItem = navItem;
+    }
+
+}

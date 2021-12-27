@@ -1,0 +1,84 @@
+﻿@using ListerUI.Enums
+<div class="selector-container">
+    <nav class="nav nav-pills flex-column flex-sm-row mb-4">
+        @foreach(var item in MenuItems)
+        {
+            if(IsSelected(item))
+            {
+                <a class="flex-sm-fill text-sm-center nav-link active in" 
+                    @onclick="@(() => SelectItem(StringToEnum(item)))"
+                >@item</a>
+            }
+            else
+            {
+                <a class="flex-sm-fill text-sm-center nav-link in" 
+                @onclick="@(() => SelectItem(StringToEnum(item)))">@item</a>
+            }
+        }
+    </nav>
+</div>
+
+@code {
+    [Parameter]
+    public NavItems Selection { get; set; } = NavItems.Lists;
+
+    [Parameter]
+    public EventCallback<NavItems> SelectViewCallback { get; set; }
+
+
+    private List<string> MenuItems { get; set; } = new List<string>() { "EDIT OR CREAT LIST", "DISPLAY LIST", "EDIT LIST" };
+
+    private bool IsSelected(string item)
+    {
+        return item == EnumToString(this.Selection);
+    }
+
+    private async Task SelectItem(NavItems selector)
+    {
+        if (selector == this.Selection) return;
+
+        Selection = selector;
+
+        await SelectViewCallback.InvokeAsync(selector);
+    }
+
+    private string EnumToString(NavItems item)
+    {
+        switch(item)
+        {
+            case NavItems.Lists:
+                {
+                    return "EDIT OR CREAT LIST";
+                }
+            case NavItems.DisplayNodes:
+                {
+                    return "DISPLAY LIST";
+                }
+            case NavItems.EditNodes:
+                {
+                    return "EDIT LIST";
+                }
+        }
+        return String.Empty;
+    }
+
+    private NavItems StringToEnum(string item)
+    {
+        switch(item)
+        {
+            case "EDIT OR CREAT LIST":
+                {
+                    return NavItems.Lists;
+                }
+            case "DISPLAY LIST":
+                {
+                    return NavItems.DisplayNodes;
+                }
+            case "EDIT LIST":
+                {
+                    return NavItems.EditNodes;
+                }
+        }
+        return NavItems.None;
+    }
+}

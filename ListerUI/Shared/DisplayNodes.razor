@@ -1,0 +1,31 @@
+﻿@using ListerUI.Models
+@using ListerUI.Repositories
+
+@inject INodeRepository nodeRepository;
+
+@if (CurrentNodeList != null)
+{
+    @foreach (var node in CurrentNodeList.GetSubNodes(CurrentNodeList.RootNode))
+    {
+        <Display Node="@node" 
+                NodeList="@this.CurrentNodeList" 
+                />
+    }
+}
+
+
+@code {
+
+    [Parameter]
+    public NodeList CurrentNodeList { get; set; }
+
+    private Node Node { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (CurrentNodeList != null)
+        {            
+            this.Node = this.CurrentNodeList.RootNode;
+        }
+    }
+}

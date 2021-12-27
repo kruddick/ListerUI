@@ -1,0 +1,57 @@
+﻿@using ListerUI.Enums
+@using ListerUI.Models
+@using ListerUI.Repositories
+
+@inject INodeRepository nodeRepository;
+
+@*if no data then show a loading spinner*@
+@if (String.IsNullOrWhiteSpace(ListId))
+{
+    <h2>Please select a list</h2>
+}
+else
+{
+    switch (SelectedMenuItem)
+    {
+        case NavItems.DisplayNodes:
+            {
+                <DisplayNodes CurrentNodeList="NodeList"  />
+                break;
+            }
+        case NavItems.EditNodes:
+            {
+                <EditNodes CurrentNodeList="NodeList" />
+                break;
+            }        
+    }
+}
+
+@code {
+
+    [Parameter]
+    public EventCallback<NavItems> UpdateNavItem { get; set; }
+
+    [Parameter]
+    public NavItems SelectedMenuItem { get; set; }
+
+    [Parameter]
+    public string ListId { get; set; } = "";
+
+    [Parameter]
+    public NodeList NodeList { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        if (!String.IsNullOrWhiteSpace(ListId))
+        {
+            this.NodeList = new NodeList();
+            this.NodeList.Load(nodeRepository.LoadList(ListId));
+            if (this.NodeList.Count() < 2)
+            {
+                UpdateNavItem.InvokeAsync(NavItems.EditNodes);
+            }
+        }
+       
+        return base.OnInitializedAsync();
+    }
+}
